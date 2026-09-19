@@ -59,7 +59,7 @@ Basic RAG systems rely solely on vector similarity, which is fast but prone to f
    (If no chunks pass the threshold, the system safely responds: "Not Found in Documents").
           ↓
 6. LLM GENERATION
-   Gemini 2.0 receives the Top 3 chunks + Conversation History and drafts a grounded answer.
+   Gemini 3.7 receives the Top 3 chunks + Conversation History and drafts a grounded answer.
           ↓
 7. FRONTEND
    Answer is streamed to the user alongside exact, expandable source citations.
