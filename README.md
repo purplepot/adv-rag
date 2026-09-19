@@ -1,41 +1,84 @@
-# AI Knowledge Assistant
+# 🧠 AI Knowledge Assistant
 
-A highly accurate Retrieval-Augmented Generation (RAG) chat application that answers questions based on your local PDF documents. The system is designed to provide grounded answers with exact source citations, minimizing hallucinations through a robust two-stage retrieval pipeline.
+> An advanced Retrieval-Augmented Generation (RAG) chat application that accurately answers questions based on your local PDF documents, complete with precise source citations.
 
-## 🧠 How It Works (The Architecture)
+---
 
-The system operates in two main phases: **Document Ingestion** and **Query Processing**.
+## About
 
-### 1. Document Ingestion (Backend Pipeline)
-Before you can chat, the system processes your documents to build a knowledge base:
-* **Extraction:** Uses `PyMuPDF` to accurately extract text from PDFs page-by-page.
-* **Chunking:** Splits the text into small, overlapping chunks (500 characters) to preserve context without overwhelming the LLM.
-* **Embedding:** Converts text into numerical vectors using a local embedding model (`all-MiniLM-L6-v2`).
-* **Storage:** Saves the vectors and metadata (filename, page numbers) in a local `ChromaDB` vector database for fast searching.
+Navigating large, complex PDF documents to find specific information can be time-consuming and prone to human error. Furthermore, standard AI chatbots often hallucinate when they lack specific context, making them unreliable for strict document-based querying.
 
-### 2. Query Processing (Two-Stage Retrieval)
-When a user asks a question, the system doesn't just do a simple search. It uses a **Two-Stage Pipeline** to ensure extreme accuracy:
+This project solves this by building a highly accurate **Two-Stage RAG Pipeline**. Instead of relying on general AI knowledge, the system mathematically retrieves the most relevant paragraphs from your local PDFs, reranks them for extreme precision using a cross-encoder, and forces the LLM to formulate its answer strictly based on those facts—all presented in a clean, user-friendly Streamlit interface.
 
-1. **Stage 1: Initial Retrieval (Fast & Broad)**
-   The user's question is converted into a vector, and ChromaDB performs a fast mathematical search to retrieve the top 10 most similar chunks. *Why not stop here?* Because vector similarity is fast but can sometimes return superficially similar text that doesn't actually answer the question.
+---
 
-2. **Stage 2: Cross-Encoder Reranking (Slow & Precise)**
-   The top 10 chunks are passed to a local Cross-Encoder model (`ms-marco-MiniLM-L-6-v2`). Unlike normal embeddings, a cross-encoder reads the user's question and the document chunk *at the exact same time*, calculating a highly accurate relevance score. 
-   
-   *How this helps:* It re-orders the chunks, dropping irrelevant ones and elevating the ones that truly answer the question. It acts as a strict filter, ensuring only the absolute best 3 chunks make it to the final stage.
+## Demo
 
-3. **Stage 3: LLM Generation**
-   The top 3 reranked chunks are sent to Google Gemini (`gemini-2.0-flash`) along with the conversation history. The LLM is strictly instructed to answer *only* using the provided chunks and to cite its sources (e.g., `[Source: document.pdf, Page 4]`).
+**Chat — AI generates answers strictly from provided context:**
 
-## 📁 Project Structure
+*(Add a screenshot here of the chat interface successfully answering a question)*
+
+**Citations — Exact source tracking for verification:**
+
+*(Add a screenshot here showing the expandable source citations with page numbers)*
+
+---
+
+## How it works
+
+Unlike basic RAG systems that rely solely on fast vector similarity (which can be inaccurate and lead to hallucinations), this application uses an **Advanced Two-Stage Pipeline** to eliminate irrelevant context:
+
+```text
+User asks a question
+        ↓
+Query converted to vector (MiniLM-L6-v2, runs locally)
+        ↓
+ChromaDB performs Stage 1: Fast Initial Retrieval
+(Top 10 mathematically similar chunks retrieved)
+        ↓
+Cross-Encoder performs Stage 2: Precision Reranking
+(Scores the exact relationship between query and chunk)
+        ↓
+Strict Relevance Gate
+(Top 3 absolutely best chunks selected)
+        ↓
+Gemini 2.0 Flash generates grounded answer + Source Citations
+        ↓
+Frontend displays chat answer & expandable source snippets
+```
+
+This ensures maximum accuracy across every stage of the pipeline:
+
+| Component | Technology | Role |
+| --- | --- | --- |
+| **PDF Extraction** | PyMuPDF | Flawlessly extracts document text while maintaining page metadata. |
+| **Embeddings** | all-MiniLM-L6-v2 | Creates 384-dimensional dense vectors locally, at zero API cost. |
+| **Vector Store** | ChromaDB | Persistently stores document chunks for fast similarity search. |
+| **Reranker** | ms-marco-MiniLM-L-6-v2 | Cross-encoder that filters out false-positives for pinpoint accuracy. |
+| **Generation** | Google Gemini | Formulates final human-readable answers strictly from the context. |
+
+---
+
+## Features
+
+- **Natural Language Chat** — Query complex PDFs exactly as if you were talking to a human expert.
+- **Post-Retrieval Reranking** — Employs a cross-encoder model to drastically improve relevance over standard vector databases.
+- **Strict Hallucination Guardrails** — The system will explicitly inform you if the answer isn't contained in the provided documents.
+- **Exact Source Citations** — Every answer includes expandable citations showing the exact document name, page number, and text excerpt.
+- **Conversation Memory** — Retains recent chat history so you can ask contextual follow-up questions naturally.
+- **Local Privacy & Zero Embedding Costs** — Heavy lifting (chunking, embedding, reranking) runs entirely on your local machine.
+
+---
+
+## Project Structure
 
 ```text
 rag-project/
 ├── app.py                 # The main Streamlit chat interface
-├── ingest.py              # Run this to process PDFs into the vector database
-├── config.py              # Centralized settings (chunk size, models, etc.)
+├── ingest.py              # CLI script to process PDFs into the vector database
+├── config.py              # Centralized settings (chunk size, models, thresholds)
 ├── requirements.txt       # Python dependencies
-├── .env                   # Environment variables (Google API Key)
+├── .env.example           # Environment variables template
 │
 ├── data/
 │   └── documents/         # 📂 Place your PDF files in here
@@ -43,42 +86,46 @@ rag-project/
 ├── chroma_db/             # Auto-generated local vector database storage
 │
 └── src/                   # Core pipeline modules
+    ├── pdf_loader.py      # PyMuPDF extraction logic
     ├── chunker.py         # Splits text into overlapping segments
     ├── embeddings.py      # Local MiniLM embedding generation
-    ├── llm.py             # Google Gemini API integration
-    ├── pdf_loader.py      # PyMuPDF extraction logic
-    ├── rag_pipeline.py    # Orchestrates the Retrieve -> Rerank -> Generate flow
+    ├── vector_store.py    # ChromaDB database operations
     ├── reranker.py        # Cross-encoder scoring and sorting
-    └── vector_store.py    # ChromaDB database operations
+    ├── llm.py             # Google Gemini API integration
+    └── rag_pipeline.py    # Orchestrates the Retrieve -> Rerank -> Generate flow
 ```
 
-## 🚀 Getting Started
+---
 
-### Prerequisites
+## Getting Started
+
+### 1. Prerequisites
 * Python 3.10+
 * A Google Gemini API Key
 
-### Installation
-1. Clone this repository and navigate into it.
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Set your API Key:
-   Create a `.env` file in the root directory and add:
-   ```env
-   GOOGLE_API_KEY=your_actual_api_key_here
-   ```
-   *(Alternatively, you can input this directly in the app's sidebar).*
+### 2. Installation
+Clone the repository and install the required dependencies:
+```bash
+git clone https://github.com/purplepot/adv-rag.git
+cd adv-rag
+pip install -r requirements.txt
+```
 
-### Usage
+### 3. Configuration
+Create a `.env` file in the root directory (you can copy `.env.example`) and add your Google API key:
+```env
+GOOGLE_API_KEY=your_actual_api_key_here
+```
+*(Alternatively, you can input this directly in the app's sidebar).*
 
-1. **Add Documents:** Place your PDF files inside the `data/documents/` folder.
-2. **Ingest Data:** Run the ingestion script to build your local vector database.
-   ```bash
-   python ingest.py
-   ```
-3. **Start Chatting:** Launch the web interface.
-   ```bash
-   streamlit run app.py
-   ```
+### 4. Build the Knowledge Base
+Add your PDF documents to the `data/documents/` folder, then run the ingestion script to build the vector database:
+```bash
+python ingest.py
+```
+
+### 5. Launch the App
+Start the Streamlit chat interface:
+```bash
+streamlit run app.py
+```
