@@ -1,0 +1,23 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+chroma_db/
+
+# Documents (do not commit personal/test PDFs)
+data/documents/*.pdf
+!data/documents/.gitkeep
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
