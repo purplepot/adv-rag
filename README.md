@@ -30,7 +30,7 @@ This project was built to fulfill specific assignment criteria. Here is how ever
 | **Embeddings** | `sentence-transformers` (`all-MiniLM-L6-v2`) runs locally (zero-cost, private). |
 | **Vector Store** | `ChromaDB` persistent local storage handles fast Top-K cosine similarity searches. |
 | **Advanced RAG (Reranking)** | Post-retrieval cross-encoder (`ms-marco-MiniLM-L-6-v2`) re-scores and filters chunks. |
-| **LLM Generation** | Google `gemini-2.0-flash` processes the reranked context to formulate answers. |
+| **LLM Generation** | Google `gemini-3.7-flash` processes the reranked context to formulate answers. |
 | **UI Interface** | `Streamlit` provides a clean, conversational chat interface with sidebar controls. |
 | **Optional Features Done** | ✅ Source Citations ✅ Conversation History ✅ Multi-document support |
 
@@ -77,19 +77,6 @@ Basic RAG systems rely solely on vector similarity, which is fast but prone to f
 * **Local Privacy & Zero Embedding Costs:** Heavy lifting (chunking, embedding, reranking) runs entirely on your local CPU/GPU, not in the cloud.
 
 ---
-
-## 📸 Demo
-
-*(Add screenshots of your application here)*
-
-**Chat Interface — Grounded Answers:**
-> `![Chat Interface](path/to/chat_image.png)`
-
-**Source Citations — Verifiable Facts:**
-> `![Citations](path/to/citations_image.png)`
-
----
-
 ## 📁 Project Structure
 
 ```text
@@ -149,3 +136,4 @@ Start the Streamlit chat interface:
 ```bash
 streamlit run app.py
 ```
+
